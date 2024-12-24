@@ -7,9 +7,11 @@ This repository contains a simple webservice that processes receipts and provide
 The Receipt Processor is a simple RESTful API service that accepts receipt data, returns a newly generated id and calculates bonus points.
 As in-memory storage solution the program is using a Go map object. The data does not persist restarts as per reqiurements.
 
-The `httprouter` package is used for fast and efficient routing.
-The `alice` package is used for clear and readable middleware chaining.
-The `uuid` package is used to generate new ids.
+#### Third-Party Packages
+
+- The `httprouter` package is used for fast and efficient routing.
+- The `alice` package is used for clear and readable middleware chaining.
+- The `uuid` package is used to generate new ids.
 
 ## Run the Program
 
@@ -76,3 +78,15 @@ Helpers include serverError and clientError helpers, JSON encoding and decoding 
 Utility functions include all functions necessary to calculate bonus points.
 
 Validation function ensures that all fields are non-empty, as well as ensuring that purchase date is a valid date.
+
+## Testing
+
+Go's built-in `testing` package is used for testing the utility functions that are responsible for calculating receipt points. Test cases are organized into tables for better readability and maintainability.
+
+### Run the Tests
+
+In the project folder, run the following command:
+
+```sh
+ go test ./cmd/web
+```
