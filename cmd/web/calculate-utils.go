@@ -1,133 +1,200 @@
 package main
 
 import (
-	"log"
+	"math"
+	"regexp"
 	"strconv"
+	"strings"
+	"time"
 
 	"kweeuhree.receipt-processor-challenge/internal/models"
 )
 
 func (app *application) CalculatePoints(id string) (int, error) {
-	log.Printf("Calculating points for receipt with id: %s", id)
+	app.infoLog.Printf("Calculating points for receipt with id: %s", id)
 
+	// Get receipt by its id
 	receipt, err := app.receiptStore.Get(id)
 	if err != nil {
 		return 0, err
 	}
 
-	intTotal, err := strconv.ParseInt(receipt.Total, 6, 12)
+	// Convert receipt's total to a float
+	floatTotal, err := strconv.ParseFloat(receipt.Total, 64)
 	if err != nil {
 		return 0, err
 	}
 
+	// Get all points of the receipt
 	points := []int{
 		app.getRetailerNamePoints(receipt.Retailer),
-		app.getRoundTotalPoints(intTotal),
-		app.getQuartersPoints(intTotal),
+		app.getRoundTotalPoints(floatTotal),
+		app.getQuartersPoints(floatTotal),
 		app.getEveryTwoItemsPoints(receipt.Items),
 		app.getItemDescriptionPoints(receipt.Items),
-		app.getLlmGeneratedPoints(intTotal),
+		app.getLlmGeneratedPoints(floatTotal),
 		app.getOddDayPoints(receipt.PurchaseDate),
 		app.getPurchaseTimePoints(receipt.PurchaseTime),
 	}
 
+	// Calculate total points of the receipt
 	var total int
 	for _, point := range points {
 		total += point
 	}
 
-	log.Printf("Receipt total points: %d", total)
+	app.infoLog.Printf("Total Points: %d", total)
 
 	return total, nil
 }
 
+// Assigns one point for every alphanumeric character in the retailer name
 func (app *application) getRetailerNamePoints(retailerName string) int {
-	// One point for every alphanumeric character in the retailer name.
-	log.Println("Calculating points for every alphanumeric character in the retailer name...")
-
 	points := 0
-	log.Printf("Calculated a total of: %d", points)
-	log.Println("...")
+
+	// Split the retailers name
+	splitChars := strings.Split(retailerName, "")
+
+	// For each character is splitChars, check if the character is alphanumeric
+	for _, char := range splitChars {
+		if app.isAlphanumeric(char) {
+			points += 1
+		}
+	}
 
 	return points
 }
 
-func (app *application) getRoundTotalPoints(total int64) int {
-	// 50 points if the total is a round dollar amount with no cents.
-	log.Println("Calculating points if the total is a round dollar amount with no cents...")
+// Checks if the character is alphanumeric
+func (app *application) isAlphanumeric(char string) bool {
+	return regexp.MustCompile(`^[a-zA-Z0-9]+$`).MatchString(char)
+}
 
+// Assigns 50 points if the total is a round dollar amount with no cents
+func (app *application) getRoundTotalPoints(total float64) int {
 	points := 0
-	log.Printf("Calculated a total of: %d", points)
-	log.Println("...")
+
+	// Use modulo operator to determine points
+	if math.Mod(total, 1.00) == 0 {
+		points = 50
+	}
 
 	return points
 }
 
-func (app *application) getQuartersPoints(total int64) int {
-	// 25 points if the total is a multiple of `0.25`.
-	log.Println("Calculating points if the total is a multiple of `0.25`...")
-
+// Assigns 25 points if the total is a multiple of `0.25`
+func (app *application) getQuartersPoints(total float64) int {
 	points := 0
-	log.Printf("Calculated a total of: %d", points)
-	log.Println("...")
+
+	// Use modulo operator to determine points
+	if math.Mod(total, 0.25) == 0 {
+		points = 25
+	}
 
 	return points
 }
 
+// Assigns 5 points for every two items on the receipt
 func (app *application) getEveryTwoItemsPoints(items []models.Item) int {
-	// 5 points for every two items on the receipt.
-	log.Println("Calculating points for every two items on the receipt...")
-
 	points := 0
-	log.Printf("Calculated a total of: %d", points)
-	log.Println("...")
+
+	// Get length of items and determine pairs
+	len := len(items)
+	pairs := (len - (len % 2)) / 2
+
+	if pairs > 0 {
+		points = pairs * 5
+	}
 
 	return points
 }
 
+// Assigns points based on item description
 func (app *application) getItemDescriptionPoints(items []models.Item) int {
 	// If the trimmed length of the item description is a multiple of 3,
 	// multiply the price by `0.2` and round up to the nearest integer.
 	// The result is the number of points earned.
-	log.Println("Calculating points for trimmed item descriptions...")
-
 	points := 0
-	log.Printf("Calculated a total of: %d", points)
-	log.Println("...")
+
+	// Loop through items
+	for _, item := range items {
+		// Per each item, trim and get the length
+		trimmedDesc := strings.TrimSpace(item.ShortDescription)
+		trimmedLen := len(trimmedDesc)
+
+		// Use modulo operator to determine points
+		if trimmedLen%3 == 0 {
+			parsedPrice, err := strconv.ParseFloat(item.Price, 64)
+
+			if err != nil {
+				app.errorLog.Printf("Error parsing price for item %s: %v", item.ShortDescription, err)
+				return 0
+			}
+			// Round up
+			itemPoints := math.Ceil(parsedPrice * 0.2)
+			points += int(itemPoints)
+		}
+	}
 
 	return points
 }
 
-func (app *application) getLlmGeneratedPoints(total int64) int {
+// Assigns points if the program is generated by an LLM
+func (app *application) getLlmGeneratedPoints(total float64) int {
 	// If and only if this program is generated using a large language model,
 	// 5 points if the total is greater than 10.00.
-	log.Println("Calculating points if this program is generated using a large language model...")
-
 	points := 0
-	log.Printf("Calculated a total of: %d", points)
-	log.Println("...")
+
+	isGeneratedByLlm := false
+
+	if isGeneratedByLlm && total > 10 {
+		points = 5
+	}
 
 	return points
 }
 
+// Assigns 6 points if the day in the purchase date is odd
 func (app *application) getOddDayPoints(purchaseDate string) int {
-	// 6 points if the day in the purchase date is odd.
-	log.Println("Calculating points if the day in the purchase date is odd...")
-
 	points := 0
-	log.Printf("Calculated a total of: %d", points)
-	log.Println("...")
+
+	// Determine the layout for time parsing
+	layout := "2006-01-02"
+	date, err := time.Parse(layout, purchaseDate)
+	if err != nil {
+		app.errorLog.Print("Error parsing date:", err)
+		return 0
+
+	}
+	// Get day of purchase
+	day := date.Day()
+
+	// Use modulo operator to determine points
+	if day%2 == 1 {
+		points = 6
+	}
 
 	return points
 }
 
+// Assigns 10 points if the time of purchase is after 2:00pm and before 4:00pm
 func (app *application) getPurchaseTimePoints(purchaseTime string) int {
-	// 10 points if the time of purchase is after 2:00pm and before 4:00pm.
-	log.Println("Calculating points if the time of purchase is after 2:00pm and before 4:00pm...")
-
 	points := 0
-	log.Printf("Calculated a total of: %d", points)
-	log.Println("...")
+	// Determine the layout for time parsing
+	layout := "15:04"
+	parsedTime, err := time.Parse(layout, purchaseTime)
+	if err != nil {
+		app.errorLog.Print("Error parsing time:", err)
+		return 0
+	}
+	// Define starting end ending time for extra bonus
+	bonusStart, _ := time.Parse(layout, "14:00") // 2:00pm
+	bonusEnd, _ := time.Parse(layout, "16:00")   // 4:00pm
+
+	// Determine whether the puchase was made during the bonus window
+	if parsedTime.After(bonusStart) && parsedTime.Before(bonusEnd) {
+		points = 10
+	}
 
 	return points
 }
