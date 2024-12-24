@@ -5,7 +5,17 @@ import (
 
 	"github.com/google/uuid"
 	"kweeuhree.receipt-processor-challenge/internal/models"
+	"kweeuhree.receipt-processor-challenge/internal/validator"
 )
+
+type ReceiptInput struct {
+	Retailer     string        `json:"retailer"`
+	PurchaseDate string        `json:"purchaseDate"`
+	PurchaseTime string        `json:"purchaseTime"`
+	Total        string        `json:"total"`
+	Items        []models.Item `json:"items"`
+	validator.Validator
+}
 
 type IdResponse struct {
 	ID string `json:"id"`
@@ -18,18 +28,25 @@ type PointsResponse struct {
 // Process the receipt and return its id
 func (app *application) ProcessReceipt(w http.ResponseWriter, r *http.Request) {
 	// Decode the JSON body into the input struct
-	var input models.Receipt
+	var input ReceiptInput
 	err := decodeJSON(w, r, &input)
 	if err != nil {
 		app.errorLog.Printf("Exiting after decoding attempt: %s", err)
 		return
 	}
 
-	// Generate receipt id
-	receiptID := uuid.New().String()
+	// Validate input
+	input.Validate()
+	if !input.Valid() {
+		encodeJSON(w, http.StatusBadRequest, input.FieldErrors)
+		return
+	}
+
+	// Prepare new receipt for storage
+	newReceipt := app.ReceiptFactory(input)
 
 	// Store the receipt in memory
-	err = app.receiptStore.Insert(receiptID, input)
+	err = app.receiptStore.Insert(newReceipt)
 	if err != nil {
 		app.serverError(w, err)
 		return
@@ -37,7 +54,7 @@ func (app *application) ProcessReceipt(w http.ResponseWriter, r *http.Request) {
 
 	// Construct the response
 	response := IdResponse{
-		ID: receiptID,
+		ID: newReceipt.ID,
 	}
 
 	// Write the response struct as JSON
@@ -60,7 +77,8 @@ func (app *application) GetReceiptPoints(w http.ResponseWriter, r *http.Request)
 	// Calculate points
 	points, err := app.CalculatePoints(receiptID)
 	if err != nil {
-		app.serverError(w, err)
+		msg := map[string]string{"error": "No receipt found for that ID."}
+		encodeJSON(w, http.StatusNotFound, msg)
 		return
 	}
 
@@ -75,4 +93,19 @@ func (app *application) GetReceiptPoints(w http.ResponseWriter, r *http.Request)
 		app.serverError(w, err)
 		return
 	}
+}
+
+func (app *application) ReceiptFactory(input ReceiptInput) models.Receipt {
+	receiptID := uuid.New().String()
+
+	newReceipt := models.Receipt{
+		ID:           receiptID,
+		Retailer:     input.Retailer,
+		PurchaseDate: input.PurchaseDate,
+		PurchaseTime: input.PurchaseTime,
+		Total:        input.Total,
+		Items:        input.Items,
+	}
+
+	return newReceipt
 }
