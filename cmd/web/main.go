@@ -15,6 +15,7 @@ type application struct {
 	infoLog  *log.Logger
 	// In-memory receipts storage
 	receiptStore *models.ReceiptStore
+	items        *[]models.Item
 }
 
 // Main point of entry
@@ -33,6 +34,7 @@ func main() {
 		errorLog:     errorLog,
 		infoLog:      infoLog,
 		receiptStore: receiptStore,
+		items:        &[]models.Item{},
 	}
 
 	// HTTP server config
