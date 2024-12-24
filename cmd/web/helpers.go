@@ -37,7 +37,7 @@ func (app *application) notFound(w http.ResponseWriter) {
 func decodeJSON(w http.ResponseWriter, r *http.Request, dst interface{}) error {
 	err := json.NewDecoder(r.Body).Decode(dst)
 	if err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+		http.Error(w, "The receipt is invalid.", http.StatusBadRequest)
 		return err
 	}
 	return nil
