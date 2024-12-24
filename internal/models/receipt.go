@@ -29,7 +29,9 @@ func NewStore() *ReceiptStore {
 }
 
 func (s *ReceiptStore) Insert(id string, receipt Receipt) error {
+	receipt.ID = &id
 	s.receipts[id] = receipt
+
 	return nil
 }
 
