@@ -4,18 +4,13 @@ import (
 	"fmt"
 )
 
-type Item struct {
-	ShortDescription string `json:"shortDescription"`
-	Price            string `json:"price"`
-}
-
 type Receipt struct {
-	ID           *string `json:"id"`
-	Retailer     string  `json:"retailer"`
-	PurchaseDate string  `json:"purchaseDate"`
-	PurchaseTime string  `json:"purchaseTime"`
-	Total        string  `json:"total"`
-	Items        []Item  `json:"items"`
+	ID           string
+	Retailer     string
+	PurchaseDate string
+	PurchaseTime string
+	Total        string
+	Items        []Item
 }
 
 type ReceiptStore struct {
@@ -28,9 +23,8 @@ func NewStore() *ReceiptStore {
 	}
 }
 
-func (s *ReceiptStore) Insert(id string, receipt Receipt) error {
-	receipt.ID = &id
-	s.receipts[id] = receipt
+func (s *ReceiptStore) Insert(receipt Receipt) error {
+	s.receipts[receipt.ID] = receipt
 
 	return nil
 }
@@ -38,7 +32,7 @@ func (s *ReceiptStore) Insert(id string, receipt Receipt) error {
 func (s *ReceiptStore) Get(id string) (Receipt, error) {
 	receipt, exists := s.receipts[id]
 	if !exists {
-		return Receipt{}, fmt.Errorf("receipt not found")
+		return Receipt{}, fmt.Errorf("no receipt found for that ID")
 	}
 
 	return receipt, nil
