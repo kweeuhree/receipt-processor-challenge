@@ -75,4 +75,4 @@ Helpers include serverError and clientError helpers, JSON encoding and decoding 
 
 Utility functions include all functions necessary to calculate bonus points.
 
-Validation function ensures that all fields are non-empty, including items array containing at least one item.
+Validation function ensures that all fields are non-empty, as well as ensuring that purchase date is a valid date.
