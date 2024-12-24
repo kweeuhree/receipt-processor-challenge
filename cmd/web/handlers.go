@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -9,13 +8,11 @@ import (
 )
 
 type IdResponse struct {
-	ID    string `json:"id"`
-	Flash string `json:"flash"`
+	ID string `json:"id"`
 }
 
 type PointsResponse struct {
-	Points int    `json:"points"`
-	Flash  string `json:"flash"`
+	Points int `json:"points"`
 }
 
 // Process the receipt and return its id
@@ -24,7 +21,7 @@ func (app *application) ProcessReceipt(w http.ResponseWriter, r *http.Request) {
 	var input models.Receipt
 	err := decodeJSON(w, r, &input)
 	if err != nil {
-		log.Printf("Exiting after decoding attempt: %s", err)
+		app.errorLog.Printf("Exiting after decoding attempt: %s", err)
 		return
 	}
 
@@ -32,18 +29,15 @@ func (app *application) ProcessReceipt(w http.ResponseWriter, r *http.Request) {
 	receiptID := uuid.New().String()
 
 	// Store the receipt in memory
-	storage := models.NewStore()
-	err = storage.Insert(receiptID, input)
+	err = app.receiptStore.Insert(receiptID, input)
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
 
 	// Construct the response
-	flash := "Receipt id successfully processed!"
 	response := IdResponse{
-		ID:    receiptID,
-		Flash: flash,
+		ID: receiptID,
 	}
 
 	// Write the response struct as JSON
@@ -71,10 +65,8 @@ func (app *application) GetReceiptPoints(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Construct the response
-	flash := "Receipt points are successfully processed!"
 	response := PointsResponse{
 		Points: points,
-		Flash:  flash,
 	}
 
 	// Write the response struct to the response as JSON
