@@ -12,10 +12,10 @@ func (app *application) routes() http.Handler {
 	router := httprouter.New()
 
 	// Get receipt id
-	router.Handler(http.MethodPost, "/receipts/process", http.HandlerFunc(app.ProcessReceipt))
+	router.Handler(http.MethodPost, "/receipts/process", http.HandlerFunc(app.handlers.ProcessReceipt))
 
 	// Get receipt points
-	router.Handler(http.MethodGet, "/receipts/:id/points", http.HandlerFunc(app.GetReceiptPoints))
+	router.Handler(http.MethodGet, "/receipts/:id/points", http.HandlerFunc(app.handlers.GetReceiptPoints))
 
 	// Chain middleware
 	standard := alice.New(app.recoverPanic, app.logRequest)

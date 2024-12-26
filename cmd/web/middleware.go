@@ -23,7 +23,7 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 				// Set a "Connection: close" header on the response
 				w.Header().Set("Connection", "close")
 				// Call the app.serverError helper method to return an Internal Server response
-				app.serverError(w, fmt.Errorf("%s", err))
+				app.helpers.ServerError(w, fmt.Errorf("%s", err))
 			}
 		}()
 		next.ServeHTTP(w, r)
