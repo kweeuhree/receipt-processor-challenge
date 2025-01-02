@@ -75,10 +75,10 @@ Main package contains main point of entry, routes and middleware.
 
 - **Main package**:
 
-  - **Routes**. Map incoming HTTP requests to their corresponding handler functions.
+  - **Routes** maps incoming HTTP requests to their corresponding handler functions.
   - **Middleware**:
-    - **logRequest**: Logs each incoming HTTP request with details such as IP, method, and URL;
-    - **recoverPanic**: Catches any panics during request processing, closes the connection, and returns an internal server error response.
+    - **logRequest** logs each incoming HTTP request with details such as IP, method, and URL;
+    - **recoverPanic** catches any panics during request processing, closes the connection, and returns an internal server error response.
 
 - **Handlers package**:
 
