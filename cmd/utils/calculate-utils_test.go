@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"testing"
@@ -7,10 +7,10 @@ import (
 )
 
 // Declare and initialize application instance for all tests
-var app *application
+var app *Utils
 
 func TestMain(m *testing.M) {
-	app = &application{}
+	app = &Utils{}
 	m.Run()
 }
 

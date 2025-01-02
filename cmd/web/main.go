@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"os"
 
+	"kweeuhree.receipt-processor-challenge/cmd/handlers"
+	"kweeuhree.receipt-processor-challenge/cmd/helpers"
+	"kweeuhree.receipt-processor-challenge/cmd/utils"
 	"kweeuhree.receipt-processor-challenge/internal/models"
 )
 
@@ -16,6 +19,9 @@ type application struct {
 	// In-memory receipts storage
 	receiptStore *models.ReceiptStore
 	items        *[]models.Item
+	handlers     *handlers.Handlers
+	helpers      *helpers.Helpers
+	utils        *utils.Utils
 }
 
 // Main point of entry
@@ -28,6 +34,9 @@ func main() {
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	receiptStore := models.NewStore()
+	utils := utils.NewUtils(errorLog, infoLog, receiptStore)
+	helpers := helpers.NewHelpers(errorLog)
+	handlers := handlers.NewHandlers(errorLog, receiptStore, utils, helpers)
 
 	// Initialize the application with its dependencies
 	app := &application{
@@ -35,6 +44,9 @@ func main() {
 		infoLog:      infoLog,
 		receiptStore: receiptStore,
 		items:        &[]models.Item{},
+		handlers:     handlers,
+		utils:        utils,
+		helpers:      helpers,
 	}
 
 	// HTTP server config

@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"kweeuhree.receipt-processor-challenge/internal/validator"
