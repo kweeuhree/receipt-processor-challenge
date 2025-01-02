@@ -114,6 +114,7 @@ func (h *Handlers) GetReceiptPoints(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Creates a new receipt based on the input
 func (h *Handlers) ReceiptFactory(input ReceiptInput) models.Receipt {
 	receiptID := uuid.New().String()
 
