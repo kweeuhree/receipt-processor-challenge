@@ -98,7 +98,7 @@ Main package contains main point of entry, routes and middleware.
 
 ## 🚀 Testing
 
-Go's built-in `testing` package is used for testing the utility functions that are responsible for calculating receipt points. Test cases are organized into tables for better readability and maintainability.
+Go's built-in `testing` package is used for testing the utility functions that are responsible for calculating receipt points, as well as routes, middleware and helper functions. Test cases are organized into tables for better readability and maintainability.
 
 ### Run the Tests
 
