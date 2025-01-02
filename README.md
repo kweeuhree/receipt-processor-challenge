@@ -31,7 +31,7 @@ As in-memory storage solution the program is using a Go map object. The data doe
 ## ▶️ Usage
 
 - Send a POST request to `/receipts/process` with a body of a receipt to be processed;
-- Receive a JSON response containing unique id of the receipt;
+- Receive a JSON response containing a unique id of the receipt;
 - Send a GET request to `/receipts/{id}/points`, replacing `{id}` with the id from the previous step;
 - Receive a JSON response containing the calculated points for the receipt.
 
