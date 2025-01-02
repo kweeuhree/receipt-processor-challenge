@@ -57,3 +57,10 @@ func ValidDate(date string) bool {
 	_, err := time.Parse(layout, date)
 	return err == nil
 }
+
+// Returns true if a value is valid time
+func ValidTime(timeString string) bool {
+	layout := "15:04"
+	_, err := time.Parse(layout, timeString)
+	return err == nil
+}

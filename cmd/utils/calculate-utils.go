@@ -175,12 +175,7 @@ func (u *Utils) getOddDayPoints(purchaseDate string) int {
 
 	// Determine the layout for time parsing
 	layout := "2006-01-02"
-	date, err := time.Parse(layout, purchaseDate)
-	if err != nil {
-		u.ErrorLog.Print("Error parsing date:", err)
-		return 0
-
-	}
+	date, _ := time.Parse(layout, purchaseDate)
 	// Get day of purchase
 	day := date.Day()
 
@@ -197,11 +192,7 @@ func (u *Utils) getPurchaseTimePoints(purchaseTime string) int {
 	points := 0
 	// Determine the layout for time parsing
 	layout := "15:04"
-	parsedTime, err := time.Parse(layout, purchaseTime)
-	if err != nil {
-		u.ErrorLog.Print("Error parsing time:", err)
-		return 0
-	}
+	parsedTime, _ := time.Parse(layout, purchaseTime)
 	// Define starting end ending time for extra bonus
 	bonusStart, _ := time.Parse(layout, "14:00") // 2:00pm
 	bonusEnd, _ := time.Parse(layout, "16:00")   // 4:00pm
