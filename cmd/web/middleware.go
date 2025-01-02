@@ -5,6 +5,7 @@ import (
 	"net/http"
 )
 
+// Logs details of incoming HTTP requests
 func (app *application) logRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		app.infoLog.Printf("%s - %s %s %s", r.RemoteAddr, r.Proto, r.Method,
@@ -13,6 +14,7 @@ func (app *application) logRequest(next http.Handler) http.Handler {
 	})
 }
 
+// Recovers from any panics during the execution of HTTP handlers
 func (app *application) recoverPanic(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Create a deferred function which will be run in the event of a panic
