@@ -1,8 +1,8 @@
-# Receipt Processor
+# 🧮 Receipt Processor
 
 This repository contains a simple webservice that processes receipts and provides an ability to calculate bonus points based on the receipt data.
 
-## Overview
+## 🪧 Overview
 
 The Receipt Processor is a simple RESTful API service that accepts receipt data, returns a newly generated id and calculates bonus points.
 As in-memory storage solution the program is using a Go map object. The data does not persist restarts as per reqiurements.
@@ -13,17 +13,29 @@ As in-memory storage solution the program is using a Go map object. The data doe
 - The `alice` package is used for clear and readable middleware chaining.
 - The `uuid` package is used to generate new ids.
 
-## Run the Program
+## 🔍 Prerequisites
 
-- Make sure Go is installed locally.
-- Clone or fork this repository.
+- Go 1.22.5
+- Windows, macOS, or Linux operating system
+
+## 🖥️ Run the Program
+
+- Make sure Go is installed locally;
+- Clone or fork this repository;
 - In the project folder, run the following command:
 
 ```sh
  go run ./cmd/web
 ```
 
-## API Specification
+## ▶️ Usage
+
+- Send a POST request to `/receipts/process` with a body of a receipt to be processed;
+- Receive a JSON response containing unique id of the receipt;
+- Send a GET request to `/receipts/{id}/points`, replacing `{id}` with the id from the previous step;
+- Receive a JSON response containing the calculated points for the receipt.
+
+## 💡API Specification
 
 ### Endpoint: Process Receipts
 
@@ -56,30 +68,35 @@ Example Response:
 { "points": 32 }
 ```
 
-## Application Architecture
+## 🧱 Application Architecture
 
-Main package contains routes, middleware, handlers, helpers and utility functions.
+This project is organized into packages, such as web, handlers, helpers and utils.
+Main package contains main point of entry, routes and middleware.
 
-- **Routes**:
-  - Map incoming HTTP requests to their corresponding handler functions.
-  -
-- **Middleware**:
+- **Main package**:
 
-  - **logRequest**: Logs each incoming HTTP request with details such as IP, method, and URL;
-  - **recoverPanic**: Catches any panics during request processing, closes the connection, and returns an internal server error response.
+  - **Routes**. Map incoming HTTP requests to their corresponding handler functions.
+  - **Middleware**:
+    - **logRequest**: Logs each incoming HTTP request with details such as IP, method, and URL;
+    - **recoverPanic**: Catches any panics during request processing, closes the connection, and returns an internal server error response.
 
-- **Handlers**:
+- **Handlers package**:
+
   - **ProcessReceipt** decodes JSON payload, validates input, sends the input to ReceiptFactory, inserts new receipt into the Go map, and returns the newly created id;
   - **GetReceiptPoints** gets receipt id from the request, sends the id into the CalculatePoints function, and encodes the received points to send back to the user;
   - **ReceiptFactory** constructs a new receipt object and returns it.
 
-Helpers include serverError and clientError helpers, JSON encoding and decoding helpers and a GetIdFromParams helper function.
+- **Helpers package**:
+  - **ServerError** handles internal server errors;
+  - **ClientError** handles client-side errors;
+  - **NotFound** sends a 404 Not Found response;
+  - **DecodeJSON** parses JSON data from HTTP requests into Go structs;
+  - **EncodeJSON** serializes Go structs into JSON format for HTTP responses;
+  - **GetIdFromParams** extracts and returns an identifier from URL parameters.
 
-Utility functions include all functions necessary to calculate bonus points.
+**Utils package** includes all functions necessary to calculate bonus points.
 
-Validation function ensures that all fields are non-empty, as well as ensuring that purchase date is a valid date.
-
-## Testing
+## 🚀 Testing
 
 Go's built-in `testing` package is used for testing the utility functions that are responsible for calculating receipt points. Test cases are organized into tables for better readability and maintainability.
 
