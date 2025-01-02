@@ -39,9 +39,11 @@ func Test_routes(t *testing.T) {
 }
 
 func routeExists(router *httprouter.Router, testRoute, testMethod string, expectedStatus int) bool {
+	// Create a ResponseRecorder to capture the response
 	recorder := httptest.NewRecorder()
+	// Create a new HTTP request
 	request := httptest.NewRequest(testMethod, testRoute, nil)
-
+	// Serve the HTTP request
 	router.ServeHTTP(recorder, request)
 
 	return recorder.Code == expectedStatus

@@ -7,10 +7,10 @@ import (
 )
 
 // Declare and initialize application instance for all tests
-var app *Utils
+var utils *Utils
 
 func TestMain(m *testing.M) {
-	app = &Utils{}
+	utils = &Utils{}
 	m.Run()
 }
 
@@ -25,7 +25,7 @@ func Test_getRetailerNamePoints(t *testing.T) {
 	}
 
 	for _, entry := range retailerNameTests {
-		result := app.getRetailerNamePoints(entry.name)
+		result := utils.getRetailerNamePoints(entry.name)
 
 		if result != entry.expected {
 			t.Errorf("retailerNameTests. %s: expected %d, received %d", entry.name, entry.expected, result)
@@ -46,7 +46,7 @@ func Test_isAlphanumeric(t *testing.T) {
 	}
 
 	for _, entry := range isAlphanumericTests {
-		result := app.isAlphanumeric(entry.char)
+		result := utils.isAlphanumeric(entry.char)
 
 		if result != entry.expected {
 			t.Errorf("isAlphanumericTests. %s: expected %t, received %t", entry.char, entry.expected, result)
@@ -67,7 +67,7 @@ func Test_getRoundTotalPoints(t *testing.T) {
 	}
 
 	for _, entry := range roundTotalTests {
-		result := app.getRoundTotalPoints(entry.num)
+		result := utils.getRoundTotalPoints(entry.num)
 
 		if result != entry.expected {
 			t.Errorf("roundTotalTests. %f: expected %d, received %d", entry.num, entry.expected, result)
@@ -88,7 +88,7 @@ func Test_getQuartersPoints(t *testing.T) {
 	}
 
 	for _, entry := range quartersTests {
-		result := app.getQuartersPoints(entry.num)
+		result := utils.getQuartersPoints(entry.num)
 
 		if result != entry.expected {
 			t.Errorf("quartersTests. %f: expected %d, received %d", entry.num, entry.expected, result)
@@ -123,7 +123,7 @@ func Test_getEveryTwoItemsPoints(t *testing.T) {
 	}
 
 	for index, entry := range everyTwoItemsTests {
-		result := app.getEveryTwoItemsPoints(entry.items)
+		result := utils.getEveryTwoItemsPoints(entry.items)
 
 		if result != entry.expected {
 			t.Errorf("everyTwoItemsTests[%d]: expected %d, received %d", index, entry.expected, result)
@@ -144,7 +144,7 @@ func Test_getOddDayPoints(t *testing.T) {
 	}
 
 	for _, entry := range oddDayTests {
-		result := app.getOddDayPoints(entry.date)
+		result := utils.getOddDayPoints(entry.date)
 
 		if result != entry.expected {
 			t.Errorf("oddDayTests. %s: expected %d, received %d", entry.date, entry.expected, result)
@@ -165,7 +165,7 @@ func Test_getPurchaseTimePoints(t *testing.T) {
 	}
 
 	for _, entry := range purchaseTimeTests {
-		result := app.getPurchaseTimePoints(entry.date)
+		result := utils.getPurchaseTimePoints(entry.date)
 
 		if result != entry.expected {
 			t.Errorf("purchaseTimeTests. %s: expected %d, received %d", entry.date, entry.expected, result)
