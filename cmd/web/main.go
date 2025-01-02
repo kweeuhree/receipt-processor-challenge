@@ -16,12 +16,8 @@ import (
 type application struct {
 	errorLog *log.Logger
 	infoLog  *log.Logger
-	// In-memory receipts storage
-	receiptStore *models.ReceiptStore
-	items        *[]models.Item
-	handlers     *handlers.Handlers
-	helpers      *helpers.Helpers
-	utils        *utils.Utils
+	handlers *handlers.Handlers
+	helpers  *helpers.Helpers
 }
 
 // Main point of entry
@@ -40,13 +36,10 @@ func main() {
 
 	// Initialize the application with its dependencies
 	app := &application{
-		errorLog:     errorLog,
-		infoLog:      infoLog,
-		receiptStore: receiptStore,
-		items:        &[]models.Item{},
-		handlers:     handlers,
-		utils:        utils,
-		helpers:      helpers,
+		errorLog: errorLog,
+		infoLog:  infoLog,
+		handlers: handlers,
+		helpers:  helpers,
 	}
 
 	// HTTP server config
