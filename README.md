@@ -88,5 +88,16 @@ Go's built-in `testing` package is used for testing the utility functions that a
 In the project folder, run the following command:
 
 ```sh
- go test ./cmd/web
+ go test ./...
 ```
+
+### Continuous Integration
+
+In order to automate the testing, a GitHub Actions workflow is set up. The workflow executes all existing tests on every push to the repository. This helps to ensure code quality and catch issues early on.
+
+**Workflow overview**:
+
+- get the latest code from the repository;
+- configure the Go environment with the specified version;
+- install project dependencies using `go mod tidy`;
+- run all tests using `go test ./...`.
