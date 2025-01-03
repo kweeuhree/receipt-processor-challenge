@@ -70,7 +70,7 @@ func (u *Utils) getRetailerNamePoints(retailerName string) int {
 	// Split the retailers name
 	splitChars := strings.Split(retailerName, "")
 
-	// For each character is splitChars, check if the character is alphanumeric
+	// For each character in splitChars, check if the character is alphanumeric
 	for _, char := range splitChars {
 		if u.isAlphanumeric(char) {
 			points += 1
@@ -193,7 +193,7 @@ func (u *Utils) getPurchaseTimePoints(purchaseTime string) int {
 	// Determine the layout for time parsing
 	layout := "15:04"
 	parsedTime, _ := time.Parse(layout, purchaseTime)
-	// Define starting end ending time for extra bonus
+	// Define starting and ending time for extra bonus
 	bonusStart, _ := time.Parse(layout, "14:00") // 2:00pm
 	bonusEnd, _ := time.Parse(layout, "16:00")   // 4:00pm
 
