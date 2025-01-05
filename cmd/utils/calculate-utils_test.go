@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"kweeuhree.receipt-processor-challenge/internal/models"
+	"kweeuhree.receipt-processor-challenge/testdata"
 )
 
 // Declare and initialize application instance for all tests
@@ -113,8 +114,8 @@ func Test_getEveryTwoItemsPoints(t *testing.T) {
 		items    []models.Item
 		expected int
 	}{
-		{"Mountain Dew receipt", MountainDewReceiptItems, 10},
-		{"Gatorade receipt", GatoradeReceiptItems, 10},
+		{"Mountain Dew receipt", testdata.MountainDewReceiptItems, 10},
+		{"Gatorade receipt", testdata.GatoradeReceiptItems, 10},
 	}
 
 	for _, entry := range tests {
@@ -135,8 +136,8 @@ func Test_getItemDescriptionPoints(t *testing.T) {
 		expected int
 	}{
 		{"empty", nil, 0},
-		{"Gatorade items", GatoradeReceiptItems, 0},
-		{"Mountain Dew items", MountainDewReceiptItems, 6},
+		{"Gatorade items", testdata.GatoradeReceiptItems, 0},
+		{"Mountain Dew items", testdata.MountainDewReceiptItems, 6},
 	}
 
 	for _, entry := range tests {
