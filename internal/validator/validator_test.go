@@ -143,6 +143,9 @@ func TestCheckField(t *testing.T) {
 
 	for _, entry := range tests {
 		t.Run(entry.name, func(t *testing.T) {
+			// Reset FieldErrors before each test
+			v.FieldErrors = nil
+
 			v.CheckField(entry.ok, entry.key, entry.msg)
 			if len(v.FieldErrors) != len(entry.expected) {
 				t.Errorf("Expected %v errors, got %v", len(entry.expected), len(v.FieldErrors))
