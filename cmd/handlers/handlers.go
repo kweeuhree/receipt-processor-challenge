@@ -13,6 +13,7 @@ import (
 
 type Handlers struct {
 	ErrorLog     *log.Logger
+	InfoLog      *log.Logger
 	ReceiptStore *models.ReceiptStore
 	Utils        *utils.Utils
 	Helpers      *helpers.Helpers
@@ -35,9 +36,10 @@ type PointsResponse struct {
 	Points int `json:"points"`
 }
 
-func NewHandlers(errorLog *log.Logger, receiptStore *models.ReceiptStore, utils *utils.Utils, helpers *helpers.Helpers) *Handlers {
+func NewHandlers(errorLog *log.Logger, infoLog *log.Logger, receiptStore *models.ReceiptStore, utils *utils.Utils, helpers *helpers.Helpers) *Handlers {
 	return &Handlers{
 		ErrorLog:     errorLog,
+		InfoLog:      infoLog,
 		ReceiptStore: receiptStore,
 		Utils:        utils,
 		Helpers:      helpers,
@@ -61,19 +63,18 @@ func (h *Handlers) ProcessReceipt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Prepare new receipt for storage
-	newReceipt := h.ReceiptFactory(input)
+	// Create and store new receipt
+	newReceiptID, err := h.CreateAndStore(input)
 
-	// Store the receipt in memory
-	err = h.ReceiptStore.Insert(newReceipt)
 	if err != nil {
+		h.ErrorLog.Printf("Failed to store receipt: %v", err)
 		h.Helpers.ServerError(w, err)
 		return
 	}
 
 	// Construct the response
 	response := IdResponse{
-		ID: newReceipt.ID,
+		ID: newReceiptID,
 	}
 
 	// Write the response struct as JSON
@@ -93,8 +94,9 @@ func (h *Handlers) GetReceiptPoints(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Calculate points
-	points, err := h.Utils.CalculatePoints(receiptID)
+	// Get receipt by its id
+	receipt, err := h.ReceiptStore.Get(receiptID)
+
 	if err != nil {
 		msg := map[string]string{"error": "No receipt found for that ID."}
 		h.Helpers.EncodeJSON(w, http.StatusNotFound, msg)
@@ -103,7 +105,7 @@ func (h *Handlers) GetReceiptPoints(w http.ResponseWriter, r *http.Request) {
 
 	// Construct the response
 	response := PointsResponse{
-		Points: points,
+		Points: receipt.Points,
 	}
 
 	// Write the response struct to the response as JSON
@@ -114,9 +116,34 @@ func (h *Handlers) GetReceiptPoints(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Creates a new receipt based on the input
-func (h *Handlers) ReceiptFactory(input ReceiptInput) models.Receipt {
+func (h *Handlers) CreateAndStore(input ReceiptInput) (string, error) {
+	// Prepare new receipt for storage
+	newReceipt, err := h.ReceiptFactory(input)
+	if err != nil {
+		return "", err
+	}
+
+	// Store the receipt in memory
+	err = h.ReceiptStore.Insert(newReceipt)
+	if err != nil {
+		return "", err
+	}
+
+	return newReceipt.ID, nil
+}
+
+// Constructs a new receipt based on the input
+func (h *Handlers) ReceiptFactory(input ReceiptInput) (models.Receipt, error) {
 	receiptID := uuid.New().String()
+
+	h.InfoLog.Printf("Calculating points for receipt with id: %s", receiptID)
+
+	points, err := h.Utils.CalculatePoints(input.Retailer, input.PurchaseDate, input.PurchaseTime, input.Total, input.Items)
+	if err != nil {
+		return models.Receipt{}, err
+	}
+
+	h.InfoLog.Printf("Total Points: %d", points)
 
 	newReceipt := models.Receipt{
 		ID:           receiptID,
@@ -125,7 +152,8 @@ func (h *Handlers) ReceiptFactory(input ReceiptInput) models.Receipt {
 		PurchaseTime: input.PurchaseTime,
 		Total:        input.Total,
 		Items:        input.Items,
+		Points:       points,
 	}
 
-	return newReceipt
+	return newReceipt, nil
 }
