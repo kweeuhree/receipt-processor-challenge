@@ -4,12 +4,14 @@ import (
 	"kweeuhree.receipt-processor-challenge/internal/validator"
 )
 
+var v *validator.Validator
+
 func (input *ReceiptInput) Validate() {
-	input.CheckField(validator.NotBlank(input.Retailer), "retailerName", "This field cannot be blank")
-	input.CheckField(validator.NotBlank(input.PurchaseDate), "purchaseDate", "This field cannot be blank")
-	input.CheckField(validator.ValidDate(input.PurchaseDate), "purchaseDate", "This field must be a valid date")
-	input.CheckField(validator.ValidTime(input.PurchaseTime), "purchaseTime", "This field must be valid time")
-	input.CheckField(validator.NotBlank(input.PurchaseTime), "purchaseTime", "This field cannot be blank")
-	input.CheckField(validator.NotBlank(input.Total), "total", "This field cannot be blank")
-	input.CheckField(validator.ItemsNotEmpty(input.Items), "items", "This field must have at least one object")
+	input.CheckField(v.NotBlank(input.Retailer), "retailerName", "This field cannot be blank")
+	input.CheckField(v.NotBlank(input.PurchaseDate), "purchaseDate", "This field cannot be blank")
+	input.CheckField(v.ValidDate(input.PurchaseDate), "purchaseDate", "This field must be a valid date")
+	input.CheckField(v.ValidTime(input.PurchaseTime), "purchaseTime", "This field must be valid time")
+	input.CheckField(v.NotBlank(input.PurchaseTime), "purchaseTime", "This field cannot be blank")
+	input.CheckField(v.NotBlank(input.Total), "total", "This field cannot be blank")
+	input.CheckField(v.ItemsNotEmpty(input.Items), "items", "This field must have at least one object")
 }
