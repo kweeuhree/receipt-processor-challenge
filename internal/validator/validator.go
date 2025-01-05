@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"strconv"
 	"strings"
 	"time"
 
@@ -62,5 +63,11 @@ func (v *Validator) ValidDate(date string) bool {
 func (v *Validator) ValidTime(timeString string) bool {
 	layout := "15:04"
 	_, err := time.Parse(layout, timeString)
+	return err == nil
+}
+
+// Returns true if a total is valid number
+func (v *Validator) ValidNumber(total string) bool {
+	_, err := strconv.ParseFloat(total, 64)
 	return err == nil
 }

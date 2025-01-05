@@ -13,5 +13,6 @@ func (input *ReceiptInput) Validate() {
 	input.CheckField(v.ValidTime(input.PurchaseTime), "purchaseTime", "This field must be valid time")
 	input.CheckField(v.NotBlank(input.PurchaseTime), "purchaseTime", "This field cannot be blank")
 	input.CheckField(v.NotBlank(input.Total), "total", "This field cannot be blank")
+	input.CheckField(v.ValidNumber(input.Total), "total", "This field must be a valid number")
 	input.CheckField(v.ItemsNotEmpty(input.Items), "items", "This field must have at least one object")
 }
