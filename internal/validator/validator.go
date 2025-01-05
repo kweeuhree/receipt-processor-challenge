@@ -42,24 +42,24 @@ func (v *Validator) CheckField(ok bool, key, message string) {
 }
 
 // Returns true if a value is not an empty string
-func NotBlank(value string) bool {
+func (v *Validator) NotBlank(value string) bool {
 	return strings.TrimSpace(value) != ""
 }
 
 // Returns true if a value is not an empty array
-func ItemsNotEmpty(items []models.Item) bool {
+func (v *Validator) ItemsNotEmpty(items []models.Item) bool {
 	return len(items) > 0
 }
 
 // Returns true if a value is a valid date
-func ValidDate(date string) bool {
+func (v *Validator) ValidDate(date string) bool {
 	layout := "2006-01-02"
 	_, err := time.Parse(layout, date)
 	return err == nil
 }
 
 // Returns true if a value is valid time
-func ValidTime(timeString string) bool {
+func (v *Validator) ValidTime(timeString string) bool {
 	layout := "15:04"
 	_, err := time.Parse(layout, timeString)
 	return err == nil
