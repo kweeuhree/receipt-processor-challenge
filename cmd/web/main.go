@@ -30,9 +30,9 @@ func main() {
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	receiptStore := models.NewStore()
-	utils := utils.NewUtils(errorLog, infoLog, receiptStore)
+	utils := utils.NewUtils()
 	helpers := helpers.NewHelpers(errorLog)
-	handlers := handlers.NewHandlers(errorLog, receiptStore, utils, helpers)
+	handlers := handlers.NewHandlers(errorLog, infoLog, receiptStore, utils, helpers)
 
 	// Initialize the application with its dependencies
 	app := &application{

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"log"
 	"math"
 	"regexp"
 	"strconv"
@@ -11,56 +10,38 @@ import (
 	"kweeuhree.receipt-processor-challenge/internal/models"
 )
 
-type Utils struct {
-	ErrorLog     *log.Logger
-	InfoLog      *log.Logger
-	ReceiptStore *models.ReceiptStore
+type Utils struct{}
+
+func NewUtils() *Utils {
+	return &Utils{}
 }
 
-func NewUtils(errorLog *log.Logger, infoLog *log.Logger, receiptStore *models.ReceiptStore) *Utils {
-	return &Utils{
-		ErrorLog:     errorLog,
-		InfoLog:      infoLog,
-		ReceiptStore: receiptStore,
-	}
-}
-
-func (u *Utils) CalculatePoints(id string) (int, error) {
-	u.InfoLog.Printf("Calculating points for receipt with id: %s", id)
-
-	// Get receipt by its id
-	receipt, err := u.ReceiptStore.Get(id)
-	if err != nil {
-		return 0, err
-	}
-
+func (u *Utils) CalculatePoints(retailer, purchaseDate, purchaseTime, total string, items []models.Item) (int, error) {
 	// Convert receipt's total to a float
-	floatTotal, err := strconv.ParseFloat(receipt.Total, 64)
+	floatTotal, err := strconv.ParseFloat(total, 64)
 	if err != nil {
 		return 0, err
 	}
 
 	// Get all points of the receipt
 	points := []int{
-		u.getRetailerNamePoints(receipt.Retailer),
+		u.getRetailerNamePoints(retailer),
 		u.getRoundTotalPoints(floatTotal),
 		u.getQuartersPoints(floatTotal),
-		u.getEveryTwoItemsPoints(receipt.Items),
-		u.getItemDescriptionPoints(receipt.Items),
+		u.getEveryTwoItemsPoints(items),
+		u.getItemDescriptionPoints(items),
 		u.getLlmGeneratedPoints(floatTotal),
-		u.getOddDayPoints(receipt.PurchaseDate),
-		u.getPurchaseTimePoints(receipt.PurchaseTime),
+		u.getOddDayPoints(purchaseDate),
+		u.getPurchaseTimePoints(purchaseTime),
 	}
 
 	// Calculate total points of the receipt
-	var total int
+	var totalPoints int
 	for _, point := range points {
-		total += point
+		totalPoints += point
 	}
 
-	u.InfoLog.Printf("Total Points: %d", total)
-
-	return total, nil
+	return totalPoints, nil
 }
 
 // Assigns one point for every alphanumeric character in the retailer name
@@ -139,12 +120,7 @@ func (u *Utils) getItemDescriptionPoints(items []models.Item) int {
 
 		// Use modulo operator to determine points
 		if trimmedLen%3 == 0 {
-			parsedPrice, err := strconv.ParseFloat(item.Price, 64)
-
-			if err != nil {
-				u.ErrorLog.Printf("Error parsing price for item %s: %v", item.ShortDescription, err)
-				return 0
-			}
+			parsedPrice, _ := strconv.ParseFloat(item.Price, 64)
 			// Round up
 			itemPoints := math.Ceil(parsedPrice * 0.2)
 			points += int(itemPoints)
