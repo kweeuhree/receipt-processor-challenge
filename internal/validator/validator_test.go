@@ -7,11 +7,13 @@ import (
 	"kweeuhree.receipt-processor-challenge/testdata"
 )
 
-var v *Validator
+type TestValidator struct {
+	validator *Validator
+}
 
-func TestMain(m *testing.M) {
-	v = &Validator{}
-	m.Run()
+func setupTestDependencies() *TestValidator {
+	v := &Validator{}
+	return &TestValidator{validator: v}
 }
 
 func TestValid(t *testing.T) {
@@ -48,6 +50,7 @@ func TestValid(t *testing.T) {
 }
 
 func TestAddNonFieldError(t *testing.T) {
+	d := setupTestDependencies()
 	tests := []struct {
 		name string
 		msg  string
@@ -65,11 +68,11 @@ func TestAddNonFieldError(t *testing.T) {
 	for _, entry := range tests {
 		t.Run(entry.name, func(t *testing.T) {
 			// Reset NonFieldErrors before each test
-			v.NonFieldErrors = nil
+			d.validator.NonFieldErrors = nil
 
-			v.AddNonFieldError(entry.msg)
+			d.validator.AddNonFieldError(entry.msg)
 
-			if v.NonFieldErrors[0] != entry.msg {
+			if d.validator.NonFieldErrors[0] != entry.msg {
 				t.Errorf("Expected to receive %s, but did not", entry.msg)
 			}
 		})
@@ -77,6 +80,7 @@ func TestAddNonFieldError(t *testing.T) {
 }
 
 func TestAddFieldError(t *testing.T) {
+	d := setupTestDependencies()
 	tests := []struct {
 		name string
 		key  string
@@ -102,15 +106,15 @@ func TestAddFieldError(t *testing.T) {
 	for _, entry := range tests {
 		t.Run(entry.name, func(t *testing.T) {
 			// Reset FieldErrors before each test
-			v.FieldErrors = nil
+			d.validator.FieldErrors = nil
 
-			v.AddFieldError(entry.key, entry.msg)
+			d.validator.AddFieldError(entry.key, entry.msg)
 
-			if v.FieldErrors == nil {
+			if d.validator.FieldErrors == nil {
 				t.Errorf("Expected to receive key %s, but did not", entry.key)
 			}
 
-			if v.FieldErrors[entry.key] != entry.msg {
+			if d.validator.FieldErrors[entry.key] != entry.msg {
 				t.Errorf("Expected to receive message %s, but did not", entry.msg)
 			}
 		})
@@ -118,6 +122,7 @@ func TestAddFieldError(t *testing.T) {
 }
 
 func TestCheckField(t *testing.T) {
+	d := setupTestDependencies()
 	tests := []struct {
 		name     string
 		ok       bool
@@ -144,15 +149,15 @@ func TestCheckField(t *testing.T) {
 	for _, entry := range tests {
 		t.Run(entry.name, func(t *testing.T) {
 			// Reset FieldErrors before each test
-			v.FieldErrors = nil
+			d.validator.FieldErrors = nil
 
-			v.CheckField(entry.ok, entry.key, entry.msg)
-			if len(v.FieldErrors) != len(entry.expected) {
-				t.Errorf("Expected %v errors, got %v", len(entry.expected), len(v.FieldErrors))
+			d.validator.CheckField(entry.ok, entry.key, entry.msg)
+			if len(d.validator.FieldErrors) != len(entry.expected) {
+				t.Errorf("Expected %v errors, got %v", len(entry.expected), len(d.validator.FieldErrors))
 			}
 			for key, value := range entry.expected {
-				if v.FieldErrors[key] != value {
-					t.Errorf("Expected value %v for key %v, got %v", value, key, v.FieldErrors[key])
+				if d.validator.FieldErrors[key] != value {
+					t.Errorf("Expected value %v for key %v, got %v", value, key, d.validator.FieldErrors[key])
 				}
 			}
 		})
@@ -160,6 +165,7 @@ func TestCheckField(t *testing.T) {
 }
 
 func TestNotBlank(t *testing.T) {
+	d := setupTestDependencies()
 	tests := []struct {
 		name   string
 		value  string
@@ -189,7 +195,7 @@ func TestNotBlank(t *testing.T) {
 
 	for _, entry := range tests {
 		t.Run(entry.name, func(t *testing.T) {
-			result := v.NotBlank(entry.value)
+			result := d.validator.NotBlank(entry.value)
 
 			if result != entry.result {
 				t.Errorf("Expected %t, but got %t", entry.result, result)
@@ -199,6 +205,7 @@ func TestNotBlank(t *testing.T) {
 }
 
 func TestItemsNotEmpty(t *testing.T) {
+	d := setupTestDependencies()
 	tests := []struct {
 		name   string
 		items  []models.Item
@@ -223,7 +230,7 @@ func TestItemsNotEmpty(t *testing.T) {
 
 	for _, entry := range tests {
 		t.Run(entry.name, func(t *testing.T) {
-			result := v.ItemsNotEmpty(entry.items)
+			result := d.validator.ItemsNotEmpty(entry.items)
 
 			if result != entry.result {
 				t.Errorf("Expected %t, but got %t", entry.result, result)
@@ -233,6 +240,7 @@ func TestItemsNotEmpty(t *testing.T) {
 }
 
 func TestValidDate(t *testing.T) {
+	d := setupTestDependencies()
 	tests := []struct {
 		name   string
 		date   string
@@ -267,7 +275,7 @@ func TestValidDate(t *testing.T) {
 
 	for _, entry := range tests {
 		t.Run(entry.name, func(t *testing.T) {
-			result := v.ValidDate(entry.date)
+			result := d.validator.ValidDate(entry.date)
 
 			if result != entry.result {
 				t.Errorf("Expected %t, but got %t", entry.result, result)
@@ -277,6 +285,7 @@ func TestValidDate(t *testing.T) {
 }
 
 func TestValidTime(t *testing.T) {
+	d := setupTestDependencies()
 	tests := []struct {
 		name       string
 		timeString string
@@ -311,7 +320,7 @@ func TestValidTime(t *testing.T) {
 
 	for _, entry := range tests {
 		t.Run(entry.name, func(t *testing.T) {
-			result := v.ValidTime(entry.timeString)
+			result := d.validator.ValidTime(entry.timeString)
 
 			if result != entry.result {
 				t.Errorf("Expected %t, but got %t", entry.result, result)
