@@ -167,3 +167,47 @@ func TestGetReceiptPoints(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteReceipt(t *testing.T) {
+	d := setupTestDependencies()
+	router := httprouter.New()
+	// Register the route
+	router.DELETE("/receipts/:id/delete", mockHandler)
+
+	tests := []struct {
+		name string
+		id   string
+		url  string
+	}{
+		{"Vaild id", SimpleReceipt.ID, "/receipts/123-qwe-456-rty-7890/delete"},
+		{"Invalid id", "123", "/receipts/123/delete"},
+		{"Empty id", "", "/receipts//delete"},
+	}
+
+	for _, entry := range tests {
+		t.Run(entry.name, func(t *testing.T) {
+			d.receiptStore.Insert(*SimpleReceipt)
+			// Construct request with context
+			req := httptest.NewRequest(http.MethodDelete, entry.url, nil)
+			params := httprouter.Params{
+				httprouter.Param{Key: "id", Value: entry.id},
+			}
+			ctx := context.WithValue(req.Context(), httprouter.ParamsKey, params)
+			req = req.WithContext(ctx)
+			// Create a response
+			resp := httptest.NewRecorder()
+
+			// Attempt to delete the receipt
+			d.handlers.DeleteReceipt(resp, req)
+
+			receipt, _ := d.receiptStore.Get(entry.id)
+			if receipt.ID != "" {
+				t.Errorf("Expected receipt with id %s to be deleted, but it was not.", entry.id)
+			}
+
+			t.Cleanup(func() {
+				d.receiptStore = models.NewStore()
+			})
+		})
+	}
+}
