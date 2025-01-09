@@ -106,3 +106,36 @@ func TestGetInvalidID(t *testing.T) {
 		t.Errorf("Expected an error message '%s', but got '%s'", expectedError, err.Error())
 	}
 }
+
+func TestDelete(t *testing.T) {
+	d := setupTestDependencies()
+	tests := []struct {
+		name string
+		id   string
+	}{
+		{"Valid id", "123-qwe-456-rty-7890"},
+		{"Invalid id", "123"},
+		{"Empty id", ""},
+	}
+
+	for _, entry := range tests {
+		t.Run(entry.name, func(t *testing.T) {
+			// Insert a receipt
+			d.receiptStore.Insert(*SimpleReceipt)
+
+			// Attempt to delete a receipt using entry id
+			d.receiptStore.Delete(entry.id)
+
+			// Attempt to retrieve a receipt using entry id
+			inserted, _ := d.receiptStore.Get(entry.id)
+			if inserted.ID == SimpleReceipt.ID {
+				t.Errorf("Expected receipt with id %s to be deleted, but it was not.", SimpleReceipt.ID)
+			}
+
+			t.Cleanup(func() {
+				d.receiptStore = NewStore()
+			})
+		})
+	}
+
+}
