@@ -20,7 +20,7 @@ func TestMain(m *testing.M) {
 	receiptStore = models.NewStore()
 	utils := &utils.Utils{}
 	helpers := &helpers.Helpers{}
-	handlers = NewHandlers(log.Default(), receiptStore, utils, helpers)
+	handlers = NewHandlers(log.Default(), log.Default(), receiptStore, utils, helpers)
 	m.Run()
 }
 
