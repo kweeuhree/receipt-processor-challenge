@@ -18,6 +18,9 @@ func (app *application) routes() http.Handler {
 	// Get receipt points
 	router.Handler(http.MethodGet, "/receipts/:id/points", http.HandlerFunc(app.handlers.GetReceiptPoints))
 
+	// Delete a receipt
+	router.Handler(http.MethodDelete, "/receipts/:id/delete", http.HandlerFunc(app.handlers.DeleteReceipt))
+
 	// Initialize the middleware chain using alice
 	// Includes:
 	// - recoverPanic: Middleware to recover from panics and prevent server crashes;

@@ -38,3 +38,14 @@ func (s *ReceiptStore) Get(id string) (Receipt, error) {
 
 	return receipt, nil
 }
+
+func (s *ReceiptStore) Delete(id string) error {
+	_, exists := s.receipts[id]
+	if !exists {
+		return fmt.Errorf("no receipt found for that ID")
+	}
+
+	delete(s.receipts, id)
+
+	return nil
+}

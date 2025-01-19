@@ -4,9 +4,8 @@ import (
 	"kweeuhree.receipt-processor-challenge/internal/validator"
 )
 
-var v *validator.Validator
-
 func (input *ReceiptInput) Validate() {
+	var v *validator.Validator
 	input.CheckField(v.NotBlank(input.Retailer), "retailerName", "This field cannot be blank")
 	input.CheckField(v.NotBlank(input.PurchaseDate), "purchaseDate", "This field cannot be blank")
 	input.CheckField(v.ValidDate(input.PurchaseDate), "purchaseDate", "This field must be a valid date")

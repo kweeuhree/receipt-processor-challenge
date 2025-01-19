@@ -2,29 +2,47 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/julienschmidt/httprouter"
 	"kweeuhree.receipt-processor-challenge/cmd/helpers"
 	"kweeuhree.receipt-processor-challenge/cmd/utils"
 	"kweeuhree.receipt-processor-challenge/internal/models"
 )
 
-var handlers *Handlers
-var receiptStore *models.ReceiptStore
+type TestDependencies struct {
+	receiptStore *models.ReceiptStore
+	utils        *utils.Utils
+	helpers      *helpers.Helpers
+	handlers     *Handlers
+}
 
-func TestMain(m *testing.M) {
-	receiptStore = models.NewStore()
+func setupTestDependencies() *TestDependencies {
+	receiptStore := models.NewStore()
 	utils := &utils.Utils{}
 	helpers := &helpers.Helpers{}
-	handlers = NewHandlers(log.Default(), log.Default(), receiptStore, utils, helpers)
-	m.Run()
+	handlers := NewHandlers(log.Default(), log.Default(), receiptStore, utils, helpers)
+
+	return &TestDependencies{
+		receiptStore: receiptStore,
+		utils:        utils,
+		helpers:      helpers,
+		handlers:     handlers,
+	}
+}
+
+// Writes an OK status to the response
+func mockHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	w.WriteHeader(http.StatusOK)
 }
 
 func TestProcessReceipt(t *testing.T) {
+	d := setupTestDependencies()
 	tests := []struct {
 		name           string
 		input          ReceiptInput
@@ -48,12 +66,12 @@ func TestProcessReceipt(t *testing.T) {
 				t.Fatalf("Failed to marshal input: %v", err)
 			}
 			// Create request and response
-			req := httptest.NewRequest("POST", "/receipts/process", bytes.NewBuffer(body))
-			req.Header.Set("Content-Type", "application/json")
+			req := httptest.NewRequest(http.MethodPost, "/receipts/process", bytes.NewBuffer(body))
+			// req.Header.Set("Content-Type", "application/json")
 			resp := httptest.NewRecorder()
 
 			// Test ProcessReceipt function
-			handlers.ProcessReceipt(resp, req)
+			d.handlers.ProcessReceipt(resp, req)
 
 			// Check the response status
 			if status := resp.Code; status != entry.expectedStatus {
@@ -88,8 +106,107 @@ func TestProcessReceipt(t *testing.T) {
 				}
 			}
 
+		})
+	}
+}
+
+func TestGetReceiptPoints(t *testing.T) {
+	d := setupTestDependencies()
+	router := httprouter.New()
+	// Register the route
+	router.GET("/receipts/:id/points", mockHandler)
+
+	tests := []struct {
+		name   string
+		ID     string
+		url    string
+		status int
+	}{
+		{"Valid receipt id", SimpleReceipt.ID, "/receipts/123-qwe-456-rty-7890/points", http.StatusOK},
+		{"Invalid receipt id", "hello-world", "/receipts/hello-world/points", http.StatusNotFound},
+		{"Invalid request url", SimpleReceipt.ID, "/hello/123-qwe-456-rty-7890/world", http.StatusNotFound},
+	}
+
+	for _, entry := range tests {
+		t.Run(entry.name, func(t *testing.T) {
+			d.receiptStore.Insert(*SimpleReceipt)
+
+			// Create request and response
+			req := httptest.NewRequest(http.MethodGet, entry.url, nil)
+			// Create request context that will enable id extraction
+			params := httprouter.Params{
+				httprouter.Param{Key: "id", Value: entry.ID},
+			}
+			ctx := context.WithValue(req.Context(), httprouter.ParamsKey, params)
+			req = req.WithContext(ctx)
+			// Create response
+			resp := httptest.NewRecorder()
+
+			// Serve the request
+			router.ServeHTTP(resp, req)
+
+			// Test GetReceiptPoints function
+			d.handlers.GetReceiptPoints(resp, req)
+
+			// Check response status
+			if resp.Code == http.StatusOK && entry.status == http.StatusOK {
+				var response PointsResponse
+				// Decode the request body
+				if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+					t.Fatalf("Failed to decode response: %v", err)
+				}
+				// Check if the points match
+				if response.Points != SimpleReceipt.Points {
+					t.Fatalf("Expected %d points, received %d", SimpleReceipt.Points, response.Points)
+				}
+			}
+
 			t.Cleanup(func() {
-				receiptStore = models.NewStore()
+				d.receiptStore = models.NewStore()
+			})
+		})
+	}
+}
+
+func TestDeleteReceipt(t *testing.T) {
+	d := setupTestDependencies()
+	router := httprouter.New()
+	// Register the route
+	router.DELETE("/receipts/:id/delete", mockHandler)
+
+	tests := []struct {
+		name string
+		id   string
+		url  string
+	}{
+		{"Vaild id", SimpleReceipt.ID, "/receipts/123-qwe-456-rty-7890/delete"},
+		{"Invalid id", "123", "/receipts/123/delete"},
+		{"Empty id", "", "/receipts//delete"},
+	}
+
+	for _, entry := range tests {
+		t.Run(entry.name, func(t *testing.T) {
+			d.receiptStore.Insert(*SimpleReceipt)
+			// Construct request with context
+			req := httptest.NewRequest(http.MethodDelete, entry.url, nil)
+			params := httprouter.Params{
+				httprouter.Param{Key: "id", Value: entry.id},
+			}
+			ctx := context.WithValue(req.Context(), httprouter.ParamsKey, params)
+			req = req.WithContext(ctx)
+			// Create a response
+			resp := httptest.NewRecorder()
+
+			// Attempt to delete the receipt
+			d.handlers.DeleteReceipt(resp, req)
+
+			receipt, _ := d.receiptStore.Get(entry.id)
+			if receipt.ID != "" {
+				t.Errorf("Expected receipt with id %s to be deleted, but it was not.", entry.id)
+			}
+
+			t.Cleanup(func() {
+				d.receiptStore = models.NewStore()
 			})
 		})
 	}

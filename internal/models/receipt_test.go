@@ -14,21 +14,27 @@ var SimpleReceipt = &Receipt{
 		{ShortDescription: "Pepsi - 12-oz", Price: "1.25"},
 	},
 }
-var store *ReceiptStore
 
-func TestMain(m *testing.M) {
-	store = NewStore()
-	m.Run()
+type TestStore struct {
+	receiptStore *ReceiptStore
+}
 
+func setupTestDependencies() *TestStore {
+	receiptStore := NewStore()
+	return &TestStore{
+		receiptStore: receiptStore,
+	}
 }
 
 func TestNewStore(t *testing.T) {
-	if store.receipts == nil {
+	d := setupTestDependencies()
+	if d.receiptStore.receipts == nil {
 		t.Errorf("Expected receipts field to be a map, but got nil")
 	}
 }
 
 func TestInsert(t *testing.T) {
+	d := setupTestDependencies()
 	tests := []struct {
 		name    string
 		receipt *Receipt
@@ -38,29 +44,30 @@ func TestInsert(t *testing.T) {
 	}
 	for _, entry := range tests {
 		t.Run(entry.name, func(t *testing.T) {
-			_ = store.Insert(*entry.receipt)
+			_ = d.receiptStore.Insert(*entry.receipt)
 
-			if entry.receipt == nil && len(store.receipts) == 1 {
-				t.Errorf("Expected receipts map to be empty, but got length %d", len(store.receipts))
+			if entry.receipt == nil && len(d.receiptStore.receipts) == 1 {
+				t.Errorf("Expected receipts map to be empty, but got length %d", len(d.receiptStore.receipts))
 			}
 
-			if entry.receipt != nil && len(store.receipts) != 1 {
-				t.Errorf("Expected a receipt, but got length %d", len(store.receipts))
+			if entry.receipt != nil && len(d.receiptStore.receipts) != 1 {
+				t.Errorf("Expected a receipt, but got length %d", len(d.receiptStore.receipts))
 			}
 
-			_, exists := store.receipts[entry.receipt.ID]
+			_, exists := d.receiptStore.receipts[entry.receipt.ID]
 			if !exists {
 				t.Errorf("receipt with ID %v was not inserted", entry.receipt.ID)
 			}
 
 			t.Cleanup(func() {
-				store = NewStore()
+				d.receiptStore = NewStore()
 			})
 		})
 	}
 }
 
 func TestGet(t *testing.T) {
+	d := setupTestDependencies()
 	tests := []struct {
 		name    string
 		receipt *Receipt
@@ -70,8 +77,8 @@ func TestGet(t *testing.T) {
 	}
 	for _, entry := range tests {
 		t.Run(entry.name, func(t *testing.T) {
-			_ = store.Insert(*entry.receipt)
-			inserted, err := store.Get(entry.receipt.ID)
+			_ = d.receiptStore.Insert(*entry.receipt)
+			inserted, err := d.receiptStore.Get(entry.receipt.ID)
 			if err != nil {
 				t.Errorf("Could not get receipt with ID %s", entry.receipt.ID)
 			}
@@ -81,14 +88,15 @@ func TestGet(t *testing.T) {
 			}
 
 			t.Cleanup(func() {
-				store = NewStore()
+				d.receiptStore = NewStore()
 			})
 		})
 	}
 }
 
 func TestGetInvalidID(t *testing.T) {
-	_, err := store.Get("invalid-id")
+	d := setupTestDependencies()
+	_, err := d.receiptStore.Get("invalid-id")
 	if err == nil {
 		t.Errorf("Expected an error, but got none")
 	}
@@ -97,4 +105,37 @@ func TestGetInvalidID(t *testing.T) {
 	if err.Error() != expectedError {
 		t.Errorf("Expected an error message '%s', but got '%s'", expectedError, err.Error())
 	}
+}
+
+func TestDelete(t *testing.T) {
+	d := setupTestDependencies()
+	tests := []struct {
+		name string
+		id   string
+	}{
+		{"Valid id", "123-qwe-456-rty-7890"},
+		{"Invalid id", "123"},
+		{"Empty id", ""},
+	}
+
+	for _, entry := range tests {
+		t.Run(entry.name, func(t *testing.T) {
+			// Insert a receipt
+			d.receiptStore.Insert(*SimpleReceipt)
+
+			// Attempt to delete a receipt using entry id
+			d.receiptStore.Delete(entry.id)
+
+			// Attempt to retrieve a receipt using entry id
+			inserted, _ := d.receiptStore.Get(entry.id)
+			if inserted.ID == SimpleReceipt.ID {
+				t.Errorf("Expected receipt with id %s to be deleted, but it was not.", SimpleReceipt.ID)
+			}
+
+			t.Cleanup(func() {
+				d.receiptStore = NewStore()
+			})
+		})
+	}
+
 }

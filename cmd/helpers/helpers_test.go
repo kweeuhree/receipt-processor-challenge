@@ -13,16 +13,10 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-var h *Helpers
-
-func TestMain(m *testing.M) {
-	h = &Helpers{
+func TestServerError(t *testing.T) {
+	h := &Helpers{
 		ErrorLog: log.Default(),
 	}
-	m.Run()
-}
-
-func TestServerError(t *testing.T) {
 	tests := []struct {
 		name     string
 		err      error
@@ -54,6 +48,9 @@ func TestServerError(t *testing.T) {
 }
 
 func TestClientError(t *testing.T) {
+	h := &Helpers{
+		ErrorLog: log.Default(),
+	}
 	tests := []struct {
 		name   string
 		status int
@@ -76,6 +73,9 @@ func TestClientError(t *testing.T) {
 }
 
 func TestNotFound(t *testing.T) {
+	h := &Helpers{
+		ErrorLog: log.Default(),
+	}
 	resp := httptest.NewRecorder()
 	h.NotFound(resp)
 
@@ -85,6 +85,9 @@ func TestNotFound(t *testing.T) {
 }
 
 func TestDecodeJSON(t *testing.T) {
+	h := &Helpers{
+		ErrorLog: log.Default(),
+	}
 	tests := []struct {
 		name    string
 		reqBody string
@@ -114,6 +117,9 @@ func TestDecodeJSON(t *testing.T) {
 }
 
 func TestEncodeJSON(t *testing.T) {
+	h := &Helpers{
+		ErrorLog: log.Default(),
+	}
 	tests := []struct {
 		name         string
 		data         interface{}
@@ -151,6 +157,9 @@ func TestEncodeJSON(t *testing.T) {
 }
 
 func TestGetIdFromParams(t *testing.T) {
+	h := &Helpers{
+		ErrorLog: log.Default(),
+	}
 	tests := []struct {
 		name       string
 		paramsId   string

@@ -7,15 +7,8 @@ import (
 	"kweeuhree.receipt-processor-challenge/testdata"
 )
 
-// Declare and initialize application instance for all tests
-var utils *Utils
-
-func TestMain(m *testing.M) {
-	utils = &Utils{}
-	m.Run()
-}
-
 func Test_getRetailerNamePoints(t *testing.T) {
+	var utils *Utils
 	tests := []struct {
 		name     string
 		expected int
@@ -37,6 +30,7 @@ func Test_getRetailerNamePoints(t *testing.T) {
 }
 
 func Test_isAlphanumeric(t *testing.T) {
+	var utils *Utils
 	tests := []struct {
 		name     string
 		char     string
@@ -61,6 +55,7 @@ func Test_isAlphanumeric(t *testing.T) {
 }
 
 func Test_getRoundTotalPoints(t *testing.T) {
+	var utils *Utils
 	tests := []struct {
 		name     string
 		num      float64
@@ -85,6 +80,7 @@ func Test_getRoundTotalPoints(t *testing.T) {
 }
 
 func Test_getQuartersPoints(t *testing.T) {
+	var utils *Utils
 	tests := []struct {
 		name     string
 		num      float64
@@ -109,6 +105,7 @@ func Test_getQuartersPoints(t *testing.T) {
 }
 
 func Test_getEveryTwoItemsPoints(t *testing.T) {
+	var utils *Utils
 	tests := []struct {
 		name     string
 		items    []models.Item
@@ -130,6 +127,7 @@ func Test_getEveryTwoItemsPoints(t *testing.T) {
 }
 
 func Test_getItemDescriptionPoints(t *testing.T) {
+	var utils *Utils
 	tests := []struct {
 		name     string
 		items    []models.Item
@@ -152,6 +150,7 @@ func Test_getItemDescriptionPoints(t *testing.T) {
 }
 
 func Test_getOddDayPoints(t *testing.T) {
+	var utils *Utils
 	tests := []struct {
 		name     string
 		date     string
@@ -176,6 +175,7 @@ func Test_getOddDayPoints(t *testing.T) {
 }
 
 func Test_getPurchaseTimePoints(t *testing.T) {
+	var utils *Utils
 	tests := []struct {
 		date     string
 		expected int

@@ -157,3 +157,16 @@ func (h *Handlers) ReceiptFactory(input ReceiptInput) (models.Receipt, error) {
 
 	return newReceipt, nil
 }
+
+func (h *Handlers) DeleteReceipt(w http.ResponseWriter, r *http.Request) {
+	receiptID := h.Helpers.GetIdFromParams(r, "id")
+
+	// Remove the receipt from receiptStore
+	err := h.ReceiptStore.Delete(receiptID)
+
+	if err != nil {
+		h.ErrorLog.Printf("Failed to delete the receipt with ID %s. Error: %+v", receiptID, err)
+		return
+	}
+	h.Helpers.EncodeJSON(w, http.StatusNoContent, "")
+}
