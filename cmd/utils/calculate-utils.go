@@ -55,10 +55,7 @@ func (u *Utils) ConcurrentCalculatePoints(retailer, purchaseDate, purchaseTime, 
 	wg.Wait()
 
 	// Calculate total points of the receipt
-	var totalPoints int
-	for _, point := range points {
-		totalPoints += point
-	}
+	totalPoints := u.sum(points)
 
 	return totalPoints, nil
 }
@@ -83,10 +80,7 @@ func (u *Utils) CalculatePoints(retailer, purchaseDate, purchaseTime, total stri
 	}
 
 	// Calculate total points of the receipt
-	var totalPoints int
-	for _, point := range points {
-		totalPoints += point
-	}
+	totalPoints := u.sum(points)
 
 	return totalPoints, nil
 }
@@ -226,4 +220,12 @@ func (u *Utils) getPurchaseTimePoints(purchaseTime string) int {
 	}
 
 	return points
+}
+
+func (u *Utils) sum(points []int) int {
+	var totalPoints int
+	for _, point := range points {
+		totalPoints += point
+	}
+	return totalPoints
 }
