@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"kweeuhree.receipt-processor-challenge/internal/models"
@@ -16,6 +17,52 @@ func NewUtils() *Utils {
 	return &Utils{}
 }
 
+func (u *Utils) ConcurrentCalculatePoints(retailer, purchaseDate, purchaseTime, total string, items []models.Item) (int, error) {
+	// Convert receipt's total to a float
+	floatTotal, err := strconv.ParseFloat(total, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	// Add a wait group to ensure that all logic completes before proceeding to add the points together
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+
+	var points []int
+
+	// Start a goroutine to calculate points concurrently
+	go func() {
+		// Decrement wait group counter upon completion
+		defer wg.Done()
+
+		// Get all points of the receipt in a local variable
+		tempPoints := []int{
+			u.getRetailerNamePoints(retailer),
+			u.getRoundTotalPoints(floatTotal),
+			u.getQuartersPoints(floatTotal),
+			u.getEveryTwoItemsPoints(items),
+			u.getItemDescriptionPoints(items),
+			u.getLlmGeneratedPoints(floatTotal),
+			u.getOddDayPoints(purchaseDate),
+			u.getPurchaseTimePoints(purchaseTime),
+		}
+
+		// Ensure that tempPoints are complete before assigning to points
+		points = tempPoints
+	}()
+
+	// Wait for the goroutine to complete
+	wg.Wait()
+
+	// Calculate total points of the receipt
+	var totalPoints int
+	for _, point := range points {
+		totalPoints += point
+	}
+
+	return totalPoints, nil
+}
+
 func (u *Utils) CalculatePoints(retailer, purchaseDate, purchaseTime, total string, items []models.Item) (int, error) {
 	// Convert receipt's total to a float
 	floatTotal, err := strconv.ParseFloat(total, 64)
@@ -23,7 +70,7 @@ func (u *Utils) CalculatePoints(retailer, purchaseDate, purchaseTime, total stri
 		return 0, err
 	}
 
-	// Get all points of the receipt
+	// Get all points of the receipt in a local variable
 	points := []int{
 		u.getRetailerNamePoints(retailer),
 		u.getRoundTotalPoints(floatTotal),
